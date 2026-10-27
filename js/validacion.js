@@ -1,9 +1,3 @@
-/* ============================================================================
-   validacion.js  -  Controla los datos del modelo ingresados por el usuario.
-   NO corrige nada solo: si un dato esta mal, guarda el error y la simulacion
-   no corre hasta que el usuario lo ingrese de nuevo.
-   ============================================================================ */
-
 function texto_a_numero(texto) {
   if (texto === null || texto === undefined) return NaN;
   texto = String(texto).trim();
