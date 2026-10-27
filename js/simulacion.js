@@ -1,27 +1,12 @@
-/* ============================================================================
-   simulacion.js  -  Sigue el diagrama de flujo, de arriba hacia abajo.
-
-   Se simulan las jornadas de guardia una por una. En cada jornada el medico
-   atiende a los pacientes de su agenda (sin cola: son pacientes por medico).
-   Por cada paciente:
-
+/*
      X1 ~ Normal(mu, sigma)     duracion de la consulta base
      X2 ~ Bernoulli(p)          ¿necesita estudios adicionales? (1 = si)
      X3 ~ Exponencial(EX)       tiempo extra de los estudios (solo si X2 = 1)
+ */
 
-   Tiempo del paciente = X1  (+ X3 si X2 = 1)
-   Tiempo de la jornada = suma del tiempo de todos los pacientes.
-   La jornada "cumple" si el tiempo total es menor o igual a la duracion del turno.
-   Cada variable pide sus numeros u con  GU()  cuando los necesita.
-   ============================================================================ */
-
-
-/* ---------------------------------------------------------------------------
-   1) VARIABLES ALEATORIAS
-   --------------------------------------------------------------------------- */
+/* 1) Variables aleatorias */
 
 // X1: duracion de la consulta ~ Normal(mu, sigma) por Teorema del Limite Central.
-// Se suman 12 numeros uniformes; (suma - 6) es aproximadamente una Normal(0,1).
 function PROC_NORMAL(mu, sigma) {
   let suma = 0;
   for (let i = 1; i <= 12; i++) {
@@ -54,11 +39,8 @@ function PROC_EXPONEN(ex) {
   return x;
 }
 
-
-/* ---------------------------------------------------------------------------
-   2) PROGRAMA PRINCIPAL
-   p = datos validados
-   --------------------------------------------------------------------------- */
+/* 2) Programa principal
+   p = datos validados */
 function simular(p) {
   let duracion = p.horas * 60;      // duracion del turno en minutos
   let jornadas = [];                // resultado de cada dia
