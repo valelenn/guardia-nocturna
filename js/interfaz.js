@@ -1,9 +1,4 @@
-/* ============================================================================
-   interfaz.js  -  Lo que se ve en pantalla.
-   ============================================================================ */
-
-const CAMPOS = ['dias', 'pacientes', 'horas', 'objetivo',
-                'muConsulta', 'sigmaConsulta', 'pEstudios', 'exEstudios'];
+const CAMPOS = ['dias', 'pacientes', 'horas', 'objetivo', 'muConsulta', 'sigmaConsulta', 'pEstudios', 'exEstudios'];
 
 let grafico_jornadas = null;
 
@@ -30,10 +25,6 @@ function mostrar_errores(errores) {
   }
 }
 
-
-/* ---------------------------------------------------------------------------
-   BOTON "Simular"
-   --------------------------------------------------------------------------- */
 function ejecutar_simulacion() {
   // 1) Leer y validar los datos del modelo
   let validacion = validar_entradas(leer_campos());
@@ -62,15 +53,44 @@ function ejecutar_simulacion() {
   mostrar_grafico(r);
   mostrar_jornadas(r);
   mostrar_detalle(r);
-  mostrar_generador(p, semilla);
+  mostrar_kpis(r, p);
 
   document.getElementById('resultados').scrollIntoView({ behavior: 'smooth' });
 }
 
+/* Tarjetas KPi (Métricas Principales Superiores)*/
+function mostrar_kpis(r, p) {
+  // 1) Porcentaje de Éxito
+  let elemExito = document.getElementById('kpi-exito');
+  let elemDiasSub = document.getElementById('kpi-dias-sub');
+  if (elemExito) elemExito.textContent = r.porcentaje_cumple.toFixed(1) + '%';
+  if (elemDiasSub) elemDiasSub.textContent = `${r.dias_cumple} de ${p.dias} Días a tiempo`;
 
-/* ---------------------------------------------------------------------------
-   RESULTADOS
-   --------------------------------------------------------------------------- */
+  // 2) Tiempo Medio por Guardia y Margen
+  let elemMedio = document.getElementById('kpi-tiempo-medio');
+  let elemMargenSub = document.getElementById('kpi-margen-sub');
+  let margen = r.duracion - r.prom_jornada;
+
+  if (elemMedio) elemMedio.textContent = `${r.prom_jornada.toFixed(0)} min`;
+  if (elemMargenSub) {
+    if (margen >= 0) {
+      elemMargenSub.textContent = `Margen libre: ${margen.toFixed(0)} min`;
+    } else {
+      elemMargenSub.textContent = `Horas extra: ${Math.abs(margen).toFixed(0)} min`;
+    }
+  }
+
+  // 3) Pacientes con Estudios
+  let elemEstudios = document.getElementById('kpi-estudios');
+  let elemEstudiosSub = document.getElementById('kpi-estudios-sub');
+  let porcEstudios = r.total_pacientes > 0 ? (r.total_estudios * 100 / r.total_pacientes) : 0;
+  let promEstudiosDia = (r.total_estudios / p.dias).toFixed(1);
+
+  if (elemEstudios) elemEstudios.textContent = `${porcEstudios.toFixed(1)}%`;
+  if (elemEstudiosSub) elemEstudiosSub.textContent = `~${promEstudiosDia} pac / día prom.`;
+}
+
+
 function mostrar_resultados(r, p) {
   document.getElementById('resultados-tabla').innerHTML =
     '<table>' +
@@ -88,13 +108,10 @@ function mostrar_resultados(r, p) {
       '</tbody>' +
     '</table>';
   document.getElementById('titulo-resultados').textContent =
-    'Resultados de la simulación (' + p.dias + ' jornadas)';
+    'Resultados de la simulación';
 }
 
-
-/* ---------------------------------------------------------------------------
-   HIPOTESIS: al menos el 85 % de las jornadas deben completar la agenda
-   --------------------------------------------------------------------------- */
+/* Hipótesis --> al menos el 85 % de las jornadas deben completar la agenda */
 function mostrar_hipotesis(r, p) {
   let dias_necesarios = Math.ceil(p.objetivo * p.dias / 100);
   let confirmada = (r.dias_cumple >= dias_necesarios);
@@ -103,11 +120,11 @@ function mostrar_hipotesis(r, p) {
   let clase;
   let cierre;
   if (confirmada) {
-    titulo = '✅ HIPÓTESIS CONFIRMADA';
+    titulo = 'HIPÓTESIS CONFIRMADA';
     clase = 'ok';
     cierre = 'alcanzando el mínimo requerido.';
   } else {
-    titulo = '❌ HIPÓTESIS NO CONFIRMADA';
+    titulo = 'HIPÓTESIS NO CONFIRMADA';
     clase = 'no';
     cierre = 'sin alcanzar el mínimo requerido.';
   }
@@ -123,12 +140,9 @@ function mostrar_hipotesis(r, p) {
     '</div>';
 }
 
-
-/* ---------------------------------------------------------------------------
-   GRAFICO: minutos de cada jornada contra el limite del turno
-   --------------------------------------------------------------------------- */
+/* Gráfico: minutos de cada jornada contra el limite del turno */
 function mostrar_grafico(r) {
-  if (typeof Chart === 'undefined') return;     // sin internet no se dibuja
+  if (typeof Chart === 'undefined') return;
   if (grafico_jornadas !== null) grafico_jornadas.destroy();
 
   let etiquetas = [];
@@ -162,10 +176,7 @@ function mostrar_grafico(r) {
   });
 }
 
-
-/* ---------------------------------------------------------------------------
-   TABLA DE CADA JORNADA
-   --------------------------------------------------------------------------- */
+/* Tabla de jornada */
 function mostrar_jornadas(r) {
   let html = '<table><thead><tr><th>Día</th><th>Pacientes con estudios</th><th>Tiempo total</th>' +
              '<th>Sobra / falta</th><th>¿Completa la agenda?</th></tr></thead><tbody>';
@@ -182,10 +193,7 @@ function mostrar_jornadas(r) {
   document.getElementById('tabla-jornadas').innerHTML = html;
 }
 
-
-/* ---------------------------------------------------------------------------
-   DETALLE DE LA PRIMERA JORNADA (cada variable aleatoria, paciente por paciente)
-   --------------------------------------------------------------------------- */
+/* Detalle de la primera jornada)  */
 function mostrar_detalle(r) {
   let html = '<table><thead><tr><th>Paciente</th><th>X₁ consulta</th><th>X₂ ¿estudios?</th>' +
              '<th>X₃ tiempo estudios</th><th>Tiempo del paciente</th><th>Acumulado</th></tr></thead><tbody>';
@@ -200,37 +208,6 @@ function mostrar_detalle(r) {
   html = html + '</tbody></table>';
   document.getElementById('tabla-detalle').innerHTML = html;
 }
-
-
-/* ---------------------------------------------------------------------------
-   USO DE LOS NUMEROS PSEUDOALEATORIOS
-   --------------------------------------------------------------------------- */
-function mostrar_generador(p, semilla) {
-  let filas = '';
-  for (let i = 0; i < primeros.length; i++) {
-    filas = filas + '<tr><td>' + primeros[i].i + '</td><td>' + primeros[i].x + '</td><td>' + primeros[i].u.toFixed(6) + '</td></tr>';
-  }
-
-  // Cantidad esperada: por paciente 12 (Normal) + 1 (Bernoulli) + p (Exponencial, solo si hay estudios)
-  let esperados = Math.round(p.dias * p.pacientes * (13 + p.pEstudios));
-
-  let aviso = '';
-  if (secuencia_repetida) {
-    aviso = '<div class="aviso">⚠️ La secuencia llegó a repetirse: se completó el período del generador.</div>';
-  }
-
-  document.getElementById('generador-contenido').innerHTML =
-    '<p>Generador congruencial multiplicativo con <strong>m = ' + MODULO_M + '</strong> y <strong>a = ' + MULTIPLICADOR_A +
-    '</strong> (constantes). Semilla X₀ generada al azar para esta simulación: <strong>' + semilla + '</strong>.</p>' +
-    '<p>El generador fabrica un número cada vez que la simulación lo pide, así que genera <strong>solo los necesarios</strong>: ' +
-    '<strong>' + usados + '</strong> números generados y <strong>' + usados + '</strong> usados. ' +
-    'Cada número se usa una sola vez: <strong>ninguno se reutiliza</strong>.</p>' +
-    '<p class="muted">Cantidad esperada: ' + p.dias + ' días × ' + p.pacientes + ' pacientes × (12 de la Normal + 1 de la Bernoulli + ' +
-    p.pEstudios + ' de la Exponencial) ≈ ' + esperados + '. La cantidad exacta varía porque la Exponencial se usa solo si el paciente necesita estudios.</p>' +
-    aviso +
-    '<table><thead><tr><th>i</th><th>Xᵢ = (a · Xᵢ₋₁) mod m</th><th>uᵢ = Xᵢ / m</th></tr></thead><tbody>' + filas + '</tbody></table>';
-}
-
 
 // Enter dentro de un casillero tambien simula
 document.addEventListener('DOMContentLoaded', function () {
