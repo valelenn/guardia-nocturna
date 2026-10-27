@@ -14,14 +14,14 @@
     <p>Hospital San Martín de Catamarca · Laboratorio N°2 · Simulación Monte Carlo</p>
   </header>
 
-  <!-- PLANTEO DEL PROBLEMA -->
+  <!-- Planteo problema -->
   <div class="card planteo">
     <h2>Planteo del problema</h2>
     <p>La dirección del hospital evalúa fijar una agenda estándar de <strong>20 pacientes por guardia</strong>
     para un único médico en el turno nocturno de <strong>6 horas (360 min)</strong>. La duración de cada consulta varía
     según la complejidad del paciente y la necesidad de estudios complementarios, por lo que se quiere saber si es
     posible cumplir la agenda sin horas extra.</p>
-    <p class="hipotesis"><strong>Hipótesis:</strong> el médico de guardia logrará completar la atención de los 20 pacientes
+    <p class="hipotesis"><strong>Hipótesis:</strong> el médico de guardia logrará completar la atención de los 25 pacientes
     dentro de las 6 horas del turno en al menos el <strong>85%</strong> de las jornadas simuladas
     (26 o más de 30 días).</p>
     <p><strong>Variables aleatorias (por paciente):</strong></p>
@@ -85,8 +85,29 @@
     <div id="estado" class="estado"></div>
   </div>
 
-  <!-- RESULTADOS (aparecen al simular) -->
+  <!-- Resultados-->
   <div id="resultados" style="display:none;">
+
+  <!-- Metricas (KPIs) -->
+    <div class="kpi-grid">
+      <div class="kpi-card success">
+        <span class="kpi-titulo">Porcentaje de Éxito</span>
+        <span class="kpi-valor" id="kpi-exito">0%</span>
+        <span class="kpi-sub" id="kpi-dias-sub">0 de 30 Días a tiempo</span>
+      </div>
+
+      <div class="kpi-card info">
+        <span class="kpi-titulo">Tiempo Medio por Guardia</span>
+        <span class="kpi-valor" id="kpi-tiempo-medio">0 min</span>
+        <span class="kpi-sub" id="kpi-margen-sub">Margen libre: 0 min</span>
+      </div>
+
+      <div class="kpi-card warning">
+        <span class="kpi-titulo">Pacientes con Estudios</span>
+        <span class="kpi-valor" id="kpi-estudios">0%</span>
+        <span class="kpi-sub" id="kpi-estudios-sub">0 pac / día prom.</span>
+      </div>
+    </div>
 
     <div class="card">
       <h2 id="titulo-resultados">Resultados de la simulación</h2>
@@ -112,12 +133,6 @@
       <h2>Cálculo paso a paso: primera jornada, paciente por paciente</h2>
       <div class="tabla-scroll" id="tabla-detalle"></div>
     </div>
-
-    <div class="card">
-      <h2>Uso de los números pseudoaleatorios</h2>
-      <div id="generador-contenido"></div>
-    </div>
-
   </div>
 </div>
 
